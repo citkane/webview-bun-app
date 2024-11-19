@@ -23,7 +23,7 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Install os dependencies
-      run: ./prepare.debian.sh
+      run: ./prepare.ubuntu.sh
         
     - name: Build webview for ${{ inputs.os }}
       run: ./build.linux.sh
