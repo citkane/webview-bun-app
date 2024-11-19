@@ -57,7 +57,8 @@ jobs:
         install: |
           apt-get update -q -y
           apt-get install -q -y git
-          run: |
+        
+        run: |
             ls
             bash ./scripts/webview/prepare.ubuntu.sh
             bash ./scripts/webview/build.linux.sh
