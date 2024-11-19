@@ -94,15 +94,15 @@ Shared process memory is not used, but this possibility is not excluded from fut
      */
     request: (topic: string, parameters: [Parameters<topic>]) => Promise<ReturnType<topic>>,
 
-    /** Publish /Subscribe pattern
+    /** Publish / Subscribe pattern
      */
     publish: (topic: string, value: any),
     subscribe: (topic: string, callback: (value: ReturnType<topic>) => void),
-    unsubscribe: // the inverse of subscribe
+    unsubscribe: //the inverse of subscribe
 
     /** Point to Point pattern
      */
-    once: // same as subscribe, but automatically unsubscribes after event consumption.
+    once: //same as subscribe, but automatically unsubscribes after event consumption.
 
     /** utilities
      */
@@ -142,13 +142,13 @@ declare global {
 const contacts = await wba.request("contacts/getContacts", ["all"]) // request all contact details
 
 wba.subscribe("contacts/partners/changed/phoneNumber", (changed) => {
-    // a changed partner phone number.
+    //a changed partner phone number.
 })
 wba.subscribe("contacts/+/changed/email", (changed) => {
-    // a changed partner, client, employee, etc email.
+    //a changed partner, client, employee, etc email.
 })
 wba.subscribe("contacts/clients/changed/#", (changed) => {
-    // a changed client contact detail of any type.
+    //a changed client contact detail of any type.
 })
 
 form.addEventListener("submit", (e: Event) => {
@@ -175,7 +175,7 @@ const myService = new Service(filePath, serviceType, [wba.port, ...yourServicePa
  Your service declaration file, ie. the `"path/to/your/AppService.ts"` file must conform to a specific template format;
  ```ts
  import { SocketInterface, type Topics } from "webview-bun-app";
- declare var self: Worker; // only required if you are creating a "childWorker", ie, a Bun `Worker` scope. 
+ declare var self: Worker; //only required if you are creating a "childWorker", ie, a Bun `Worker` scope. 
 
 /**
  * NB!
@@ -193,7 +193,7 @@ declare global {
     }
 }
 
-const rootTopic = "contacts"; // this must be a unique name in your application service stack
+const rootTopic = "contacts"; //this must be a unique name in your application service stack
 
 /**
  * `socketApi` defines the `request` interface for this service in your application.
@@ -208,22 +208,22 @@ function socketApi(this: InstanceType<typeof Main>) {
 }
 
 /** 
- * The class must be called `Main`, and exported / extended exactly as below
+ * The class must be called `Main`, and exported exactly as below
  */
 export class Main extends SocketInterface {
     
-    constructor(port: number, ...params) {   // The `port` parameter is required
-        super(port, rootTopic, process)      // pass either `self` or `process` to `super` depending on 
-                                             // if the scope is a "childWorker" or "childProcess" respectively.
+    constructor(port: number, ...params) {   //The `port` parameter is required
+        super(port, rootTopic, process)      //pass either `self` or `process` to `super` depending on 
+                                             //if the scope is a "childWorker" or "childProcess" respectively.
         this.startApiSocket(socketApi, this)
             .then(() => {
-                this.ipc?.send("ready");     // signal back to the parent process that you are ready.
-                this.init();                 // Your service is now ready for business
+                this.ipc?.send("ready");     //signal back to the parent process that you are ready.
+                this.init();                 //Your service is now ready for business
             });
     }
 
     /**
-     * Create your service business logic 
+     * Create the business logic for your service 
      */
     private init(){
         this.subscribe("database/contacts/updated/#", this.changedOnDB)
@@ -239,7 +239,7 @@ export class Main extends SocketInterface {
         this.request("database/contacts", ["update", detail]).then(()=>{
             this.changedOnDB(detail)
         }).catch((err) => {
-            // handle the error
+            //handle the error
         })
     }
 
