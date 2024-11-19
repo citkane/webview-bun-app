@@ -30,7 +30,7 @@ jobs:
 
     - uses: actions/upload-artifact@v4
       with:
-        name: libwebview
+        name: libwebview_linux
         path: bin/webview/**/*.so
         overwrite: true
 
@@ -52,6 +52,28 @@ jobs:
 
     - uses: actions/upload-artifact@v4
       with:
-        name: libwebview
+        name: libwebview_windows
         path: bin/webview/**/*.dll
+        overwrite: true
+
+  build_mac:
+    if: ${{ inputs.os == 'MacOs' }}
+    runs-on: macos-latest
+    defaults:
+      run:
+        working-directory: ./scripts/webview
+    steps:
+    - name: Check out the repository to the runner
+      uses: actions/checkout@v4
+
+    - name: Install os dependencies
+      run: ./prepare.macos.sh
+        
+    - name: Build webview for ${{ inputs.os }}
+      run: ./build.macos.sh
+
+    - uses: actions/upload-artifact@v4
+      with:
+        name: libwebview_mac
+        path: bin/webview/**/*.dylib
         overwrite: true

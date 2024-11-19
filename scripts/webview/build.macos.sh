@@ -10,7 +10,7 @@ else
 fi
 
 TARGET_DIR=../../../bin/webview
-TARGET_FILE="$TARGET_DIR/libwebview-linux-$(arch).so"
+TARGET_FILE="$TARGET_DIR/libwebview-macos-$(arch).dylib"
 
 
 cmake -G Ninja -B build -S . -D CMAKE_BUILD_TYPE=Release \
@@ -21,5 +21,5 @@ cmake -G Ninja -B build -S . -D CMAKE_BUILD_TYPE=Release \
 
 cmake --build build
 
-cp build/core/libwebview.so "$TARGET_FILE"
+cp build/core/libwebview.dylib "$TARGET_FILE"
 rm -rf build
