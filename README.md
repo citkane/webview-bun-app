@@ -10,8 +10,11 @@ WBA (webview-bun-app) is a wrapper for [webview](https://github.com/webview/webv
 - have a common service interface between processes
 
 ## Installation:
-```
+```bash
 bun i git://github.com/citkane/webview-bun-app.git
+
+# Run the example application
+bun run example
 ```
 This ALPHA software requires some OS dependencies for the webview binary to run. This will not always be so.<br>
 Please install the dependencies described in the installation instructions for [webview-bun](https://github.com/tr1ckydev/webview-bun/tree/1db3d04?tab=readme-ov-file#installation). 
