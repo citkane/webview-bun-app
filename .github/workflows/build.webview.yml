@@ -9,6 +9,7 @@ on:
         type: choice
         options:
         - Linux
+        - LinuxArm
         - Windows
         - MacOS
 jobs:
@@ -36,11 +37,8 @@ jobs:
         overwrite: true
         
   build_linux_arm:
-    if: ${{ inputs.os == 'Linux' }}
+    if: ${{ inputs.os == 'LinuxArm' }}
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./scripts/webview
     steps:
     - name: Build webview for ${{ inputs.os }} arm64
     - uses: actions/checkout@v4
@@ -48,21 +46,24 @@ jobs:
       with:
         arch: armv7
         distro: ubuntu22.04
+        setup: |
+            mkdir -p "${PWD}/artifacts"
+            ls
         dockerRunArgs: |
-          --volume "${PWD}/bin/webview:/artifacts"
-          shell: /bin/sh
-          install: |
-            apt-get update -q -y
-            apt-get install -q -y git
-    - name: Install os dependencies
-      run: ./prepare.ubuntu.sh
-    - name: Build webview for ${{ inputs.os }}
-      run: ./build.linux.sh
+          --volume "${PWD}/artifacts:/bin/webview"
+        shell: /bin/sh
+        install: |
+          apt-get update -q -y
+          apt-get install -q -y git
+          run: |
+            ./prepare.ubuntu.sh
+            ./build.linux.sh
+    
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: libwebview_linux_arm64
-        path: bin/webview/**/*.so
+        name: libwebview_linux
+        path: artifacts/**/*.so
         overwrite: true
         
   build_windows:
