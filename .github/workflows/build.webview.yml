@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./scripts/buildWebview
+        working-directory: ./scripts/build/webview
     steps:
     - name: Check out the repository to the runner
       uses: actions/checkout@v4
