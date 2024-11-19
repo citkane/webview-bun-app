@@ -10,7 +10,7 @@ if exist "webview" (
 )
 
 set TARGET_DIR=..\..\..\bin\webview
-set TARGET_FILE=%TARGET_DIR%\webview-windows-%PROCESSOR_ARCHITECTURE%.dll
+set TARGET_FILE=%TARGET_DIR%\llibwebview-windows-%PROCESSOR_ARCHITECTURE%.dll
 
 cmake -G Ninja -B build -S . -Wno-dev -D CMAKE_BUILD_TYPE=Release ^
 -D WEBVIEW_BUILD_DOCS=false -D WEBVIEW_BUILD_EXAMPLES=false -D WEBVIEW_BUILD_TESTS=false ^
@@ -20,9 +20,7 @@ cmake -G Ninja -B build -S . -Wno-dev -D CMAKE_BUILD_TYPE=Release ^
 cmake --build build
 
 if not exist "%TARGET_DIR%" mkdir "%TARGET_DIR%"
-
-dir build\core
-copy build\core\webview.dll "%TARGET_FILE%"
+copy build\core\libwebview.dll "%TARGET_FILE%"
 rmdir /s /q build
 
 echo %TARGET_FILE%
