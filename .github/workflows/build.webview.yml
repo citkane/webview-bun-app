@@ -26,4 +26,5 @@ jobs:
     - uses: actions/upload-artifact@v4
       with:
         name: my-artifact
-        path: bin/world.txt
+        path: bin/webview/**/*.so
+        overwrite: true
