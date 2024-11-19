@@ -20,6 +20,8 @@ cmake -G Ninja -B build -S . -D CMAKE_BUILD_TYPE=Release ^
 cmake --build build
 
 if not exist "%TARGET_DIR%" mkdir "%TARGET_DIR%"
+
+dir build
 copy build\core\webview.dll "%TARGET_FILE%"
 rmdir /s /q build
 
