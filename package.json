@@ -1,14 +1,7 @@
 {
       "name": "webview-bun-app",
-      "module": "src/index.ts",
-      "type": "module",
       "main": "src/index.ts",
-      "workspaces": [
-            "packages/*"
-      ],
-      "scripts": {
-            "example": "bun run --cwd packages/exampleapp index.ts"
-      },
+      "module": "src/index.ts",
       "devDependencies": {
             "@types/bun": "latest",
             "eslint": "^9.14.0"
@@ -16,7 +9,14 @@
       "peerDependencies": {
             "typescript": "^5.0.0"
       },
+      "scripts": {
+            "example": "bun run --cwd packages/exampleapp index.ts"
+      },
+      "type": "module",
+      "workspaces": [
+            "packages/*"
+      ],
       "dependencies": {
-            "webview-bun": "git://github.com/tr1ckydev/webview-bun.git#1db3d04"
+            "webview-bun": "https://github.com/tr1ckydev/webview-bun.git#1db3d04"
       }
 }

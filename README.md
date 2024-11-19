@@ -11,7 +11,7 @@ WBA (webview-bun-app) is a wrapper for [webview](https://github.com/webview/webv
 
 ## Installation:
 ```bash
-bun i git://github.com/citkane/webview-bun-app.git
+bun i https://github.com/citkane/webview-bun-app.git
 
 # Run the example application
 bun run example
