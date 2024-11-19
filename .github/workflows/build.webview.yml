@@ -11,13 +11,14 @@ on:
         - ubuntu-latest
         - windows-latest
         - macos-latest
-jobs: 
-  build:
-    name: "build ${{ inputs.os }}"
+jobs:
+  build_linux:
     runs-on: ${{ inputs.os }}
     steps:
-    - run: mkdir -p path/to/artifact
-    - run: echo hello > path/to/artifact/world.txt
+    - name: build ${{ inputs.os }}
+      run: |
+        mkdir -p path/to/artifact
+        echo hello > path/to/artifact/world.txt 
     - uses: actions/upload-artifact@v4
       with:
         name: my-artifact
