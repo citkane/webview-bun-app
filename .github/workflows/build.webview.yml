@@ -29,9 +29,9 @@ jobs:
       run: ./build.linux.sh
 
     - name: Build webview for ${{ inputs.os }} arm64
-      steps:
-        - uses: actions/checkout@v4
-        - uses: uraimo/run-on-arch-action@v2
+      uses: |
+        actions/checkout@v4
+        uraimo/run-on-arch-action@v2
           with:
             arch: armv7
             distro: ubuntu22.04
