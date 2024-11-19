@@ -2,7 +2,7 @@ name: Build Webview
 on:
   workflow_dispatch:
     inputs:
-      runsOs:
+      os:
         description: 'Which OS to build webview with'
         required: true
         default: 'ubuntu-latest'
@@ -13,7 +13,7 @@ on:
         - macos-latest
 jobs: 
   build_linux:
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.os }}
     steps:
     - run: mkdir -p path/to/artifact
     - run: echo hello > path/to/artifact/world.txt
