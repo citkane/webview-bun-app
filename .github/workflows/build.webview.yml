@@ -1,5 +1,16 @@
 name: Build Webview
-on: workflow_dispatch
+on:
+  workflow_dispatch:
+    inputs:
+      runsOs:
+        description: 'Which OS to build webview with'
+        required: true
+        default: 'ubuntu-latest'
+        type: choice
+        options:
+        - ubuntu-latest
+        - windows-latest
+        - macos-latest
 jobs: 
   build_linux:
     runs-on: ubuntu-latest
