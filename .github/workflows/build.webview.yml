@@ -22,7 +22,9 @@ jobs:
     - name: Check out the repository to the runner
       uses: actions/checkout@v4
     - name: Build webview for ${{ inputs.os }}
-      run: ./linux.sh
+      run: |
+        ls
+        bash ./linux.sh
     - uses: actions/upload-artifact@v4
       with:
         name: my-artifact
