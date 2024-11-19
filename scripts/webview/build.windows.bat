@@ -21,7 +21,7 @@ cmake --build build
 
 if not exist "%TARGET_DIR%" mkdir "%TARGET_DIR%"
 
-dir build
+dir build\core
 copy build\core\webview.dll "%TARGET_FILE%"
 rmdir /s /q build
 
