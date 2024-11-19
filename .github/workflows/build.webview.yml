@@ -12,7 +12,8 @@ on:
         - windows-latest
         - macos-latest
 jobs: 
-  build_linux:
+  build:
+    name: "build ${{ inputs.os }}"
     runs-on: ${{ inputs.os }}
     steps:
     - run: mkdir -p path/to/artifact
