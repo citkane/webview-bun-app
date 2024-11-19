@@ -1,5 +1,5 @@
 name: Build Webview
-on: []
+on: workflow_dispatch
 jobs: 
   build_linux:
     runs-on: ubuntu-latest
