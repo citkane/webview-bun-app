@@ -2,10 +2,12 @@
 
 xxxxxxx **ALPHA SOFTWARE** xxxxxxxxx
 
-WBA (webview-bun-app) wraps [webview](https://github.com/webview/webview), thus enabling the building of [Bun](https://bun.sh/) based desktop applications which:
+WBA (webview-bun-app) is a wrapper for [webview](https://github.com/webview/webview) that enables the building of [Bun](https://bun.sh/) based desktop applications which:
 - are cross-platform,
 - use HTML5 for their graphic user interface (GUI),
 - can leverage modern browser frontend technologies.
+- can leverage multi core processes
+- have a common service interface between processes
 
 ## Installation:
 ```
