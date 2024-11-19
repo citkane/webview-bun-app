@@ -242,7 +242,6 @@ export class Main extends SocketInterface {
             //handle the error
         })
     }
-
 }
  ```
 
