@@ -19,12 +19,12 @@ jobs:
       run:
         working-directory: ./scripts/webview
     steps:
-    - name: Install os dependencies
-      run: ./prepare.debian.sh
-        
     - name: Check out the repository to the runner
       uses: actions/checkout@v4
 
+    - name: Install os dependencies
+      run: ./prepare.debian.sh
+        
     - name: Build webview for ${{ inputs.os }}
       run: ./build.linux.sh
 
