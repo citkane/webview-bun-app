@@ -58,6 +58,9 @@ jobs:
 
                           dockerRunArgs: |
                                 --volume "${PWD}/$BIN_DIR:${PWD}/$BIN_DIR"
+                          env: |
+                                BIN_DIR: ${{ env.BIN_DIR }}
+                                SCRIPT_DIR: ${{ env.SCRIPT_DIR }}
                           shell: /bin/sh
                           install: |
                                 apt-get update -q -y
