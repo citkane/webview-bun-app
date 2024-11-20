@@ -1,118 +1,121 @@
 name: Build Webview
 on:
-  workflow_dispatch:
-    inputs:
-      os:
-        description: 'Which OS to build webview with'
-        required: true
-        default: 'ubuntu-latest'
-        type: choice
-        options:
-        - Linux_X64
-        - Linux_Arm64
-        - Windows_Amd64
-        - MacOS_Arm64
+      workflow_dispatch:
+            inputs:
+                  os:
+                        description: "Which OS to build webview with"
+                        required: true
+                        default: "ubuntu-latest"
+                        type: choice
+                        options:
+                              - Linux_X64
+                              - Linux_Arm64
+                              - Windows_Amd64
+                              - MacOS_Arm64
+env:
+      SCRIPT_DIR: "./packages/webview-bun-lib/scripts"
 jobs:
-  build_linux_x64:
-    if: ${{ inputs.os == 'Linux_X64' }}
-    name: Build webview for ${{ inputs.os }}
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./scripts/webview
-    steps:
-    - name: Check out the repository to the runner
-      uses: actions/checkout@v4
+      build_linux_x64:
+            if: ${{ inputs.os == 'Linux_X64' }}
+            name: Build webview for ${{ inputs.os }}
+            runs-on: ubuntu-latest
+            defaults:
+                  run:
+                        working-directory: $SCRIPT_DIR
+            steps:
+                  - name: Check out the repository to the runner
+                    uses: actions/checkout@v4
 
-    - name: Install os dependencies
-      run: ./prepare.ubuntu.sh
-        
-    - name: Build webview
-      run: ./build.linux.sh
+                  - name: Install os dependencies
+                    run: ./linux.ubuntu.prepare.sh
 
-    - name: Upload artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: libwebview_linux_x64
-        path: packages/webview-bun-lib/bin/**/*.so
-        overwrite: true
-        
-  build_linux_arm64:
-    if: ${{ inputs.os == 'Linux_Arm64' }}
-    name: Build webview for ${{ inputs.os }}
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v4
-    - uses: uraimo/run-on-arch-action@v2
-      name: Build artifact in QUEMU arm64 container
-      id: build
-      with:
-        arch: armv7
-        distro: ubuntu22.04
-        githubToken: ${{ github.token }}
-        setup: |
-            mkdir -p "${PWD}/packages/webview-bun-lib/bin"
-            
-        dockerRunArgs: |
-          --volume "${PWD}/packages/webview-bun-lib/bin:packages/webview-bun-lib/bin"
-        shell: /bin/sh
-        install: |
-          apt-get update -q -y
-          apt-get install -q -y git libgtk-3-0  libwebkit2gtk-4.1-0 libwebkit2gtk-4.1-dev cmake build-essential ninja-build python3
-        
-        run: |
-            bash ./scripts/webview/build.linux.sh
-            ls
-    
-    - name: Upload artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: libwebview_linux_arm64
-        path: packages/webview-bun-lib/bin/**/*.so
-        overwrite: true 
-        
-  build_windows_amd64:
-    if: ${{ inputs.os == 'Windows_Amd64' }}
-    name: Build webview for ${{ inputs.os }}
-    runs-on: windows-latest
-    defaults:
-      run:
-        working-directory: ./scripts/webview
-    steps:
-    - name: Check out the repository to the runner
-      uses: actions/checkout@v4
+                  - name: Build webview
+                    run: ./build.linux.sh
 
-    - name: Install os dependencies
-      run: ./prepare.windows.bat
-        
-    - name: Build webview
-      run: ./build.windows.bat
+                  - name: Upload artifacts
+                    uses: actions/upload-artifact@v4
+                    with:
+                          name: libwebview_linux_x64
+                          path: ${ SCRIPT_DIR }/**/*.so
+                          overwrite: true
 
-    - uses: actions/upload-artifact@v4
-      with:
-        name: libwebview_windows_amd64
-        path: packages/webview-bun-lib/bin/**/*.dll
-        overwrite: true
+      build_linux_arm64:
+            if: ${{ inputs.os == 'Linux_Arm64' }}
+            name: Build webview for ${{ inputs.os }}
+            runs-on: ubuntu-latest
+            steps:
+                  - uses: actions/checkout@v4
+                  - uses: uraimo/run-on-arch-action@v2
+                    name: Build artifact in QUEMU arm64 container
+                    id: build
+                    with:
+                          arch: armv7
+                          distro: ubuntu22.04
+                          githubToken: ${{ github.token }}
+                          setup: |
+                                mkdir -p "${PWD}/packages/webview-bun-lib/bin"
 
-  build_mac_arm64:
-    if: ${{ inputs.os == 'MacOS_Arm64' }}
-    name: Build webview for ${{ inputs.os }}
-    runs-on: macos-latest
-    defaults:
-      run:
-        working-directory: ./scripts/webview
-    steps:
-    - name: Check out the repository to the runner
-      uses: actions/checkout@v4
+                          dockerRunArgs: |
+                                --volume "${PWD}/packages/webview-bun-lib/bin:packages/webview-bun-lib/bin"
+                          shell: /bin/sh
+                          install: |
+                                apt-get update -q -y
+                                apt-get install -q -y git libgtk-3-0  libwebkit2gtk-4.1-0 libwebkit2gtk-4.1-dev cmake build-essential ninja-build python3
 
-    - name: Install os dependencies
-      run: ./prepare.macos.sh
-        
-    - name: Build webview
-      run: ./build.macos.sh
+                          run: |
+                                cd ./packages/webview-bun-lib
+                                bash ./linux.build.sh
+                                ls
 
-    - uses: actions/upload-artifact@v4
-      with:
-        name: libwebview_mac_arm64
-        path: packages/webview-bun-lib/bin/**/*.dylib
-        overwrite: true
+                  - name: Upload artifacts
+                    uses: actions/upload-artifact@v4
+                    with:
+                          name: libwebview_linux_arm64
+                          path: ${ SCRIPT_DIR }/**/*.so
+                          overwrite: true
+
+      build_windows_amd64:
+            if: ${{ inputs.os == 'Windows_Amd64' }}
+            name: Build webview for  ${{ inputs.os }}
+            runs-on: windows-latest
+            defaults:
+                  run:
+                        working-directory: $SCRIPT_DIR
+            steps:
+                  - name: Check out the repository to the runner
+                    uses: actions/checkout@v4
+
+                  - name: Install os dependencies
+                    run: ./windows.prepare.bat
+
+                  - name: Build webview
+                    run: ./windows.build.bat
+
+                  - uses: actions/upload-artifact@v4
+                    with:
+                          name: libwebview_windows_amd64
+                          path: ${ SCRIPT_DIR }/**/*.dll
+                          overwrite: true
+
+      build_mac_arm64:
+            if: ${{ inputs.os == 'MacOS_Arm64' }}
+            name: Build webview for ${{ inputs.os }}
+            runs-on: macos-latest
+            defaults:
+                  run:
+                        working-directory: $SCRIPT_DIR
+            steps:
+                  - name: Check out the repository to the runner
+                    uses: actions/checkout@v4
+
+                  - name: Install os dependencies
+                    run: ./macos.prepare.sh
+
+                  - name: Build webview
+                    run: ./macos.build.sh
+
+                  - uses: actions/upload-artifact@v4
+                    with:
+                          name: libwebview_mac_arm64
+                          path: ${ SCRIPT_DIR }/**/*.dylib
+                          overwrite: true
