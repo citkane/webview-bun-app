@@ -48,6 +48,7 @@ jobs:
       with:
         arch: armv7
         distro: ubuntu22.04
+        githubToken: ${{ github.token }}
         setup: |
             mkdir -p "${PWD}/xartifacts"
             
