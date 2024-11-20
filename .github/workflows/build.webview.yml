@@ -13,7 +13,9 @@ on:
                               - Windows_Amd64
                               - MacOS_Arm64
 env:
-      SCRIPT_DIR: "./packages/webview-bun-lib/scripts"
+      PACKAGE_DIR: "${PWD}/packages/webview-bun-lib"
+      SCRIPT_DIR: "${PACKAGE_DIR}/scripts"
+      BIN_DIR: "${PACKAGE_DIR}/bin"
 jobs:
       build_linux_x64:
             if: ${{ inputs.os == 'Linux_X64' }}
@@ -21,7 +23,7 @@ jobs:
             runs-on: ubuntu-latest
             defaults:
                   run:
-                        working-directory: $SCRIPT_DIR
+                        working-directory: "${SCRIPT_DIR}"
             steps:
                   - name: Check out the repository to the runner
                     uses: actions/checkout@v4
@@ -36,7 +38,7 @@ jobs:
                     uses: actions/upload-artifact@v4
                     with:
                           name: libwebview_linux_x64
-                          path: ${ SCRIPT_DIR }/**/*.so
+                          path: "${BIN_DIR}/**/*.so"
                           overwrite: true
 
       build_linux_arm64:
@@ -53,7 +55,7 @@ jobs:
                           distro: ubuntu22.04
                           githubToken: ${{ github.token }}
                           setup: |
-                                mkdir -p "${PWD}/packages/webview-bun-lib/bin"
+                                mkdir -p "${PWD}/${SCRIPT_DIR}/bin"
 
                           dockerRunArgs: |
                                 --volume "${PWD}/packages/webview-bun-lib/bin:packages/webview-bun-lib/bin"
@@ -71,7 +73,7 @@ jobs:
                     uses: actions/upload-artifact@v4
                     with:
                           name: libwebview_linux_arm64
-                          path: ${ SCRIPT_DIR }/**/*.so
+                          path: ${{ env.SCRIPT_DIR }}/**/*.so
                           overwrite: true
 
       build_windows_amd64:
@@ -80,7 +82,7 @@ jobs:
             runs-on: windows-latest
             defaults:
                   run:
-                        working-directory: $SCRIPT_DIR
+                        working-directory: ${{ env.SCRIPT_DIR }}
             steps:
                   - name: Check out the repository to the runner
                     uses: actions/checkout@v4
@@ -94,7 +96,7 @@ jobs:
                   - uses: actions/upload-artifact@v4
                     with:
                           name: libwebview_windows_amd64
-                          path: ${ SCRIPT_DIR }/**/*.dll
+                          path: ${{ env.SCRIPT_DIR }}/**/*.dll
                           overwrite: true
 
       build_mac_arm64:
@@ -103,7 +105,7 @@ jobs:
             runs-on: macos-latest
             defaults:
                   run:
-                        working-directory: $SCRIPT_DIR
+                        working-directory: ${{ env.SCRIPT_DIR }}
             steps:
                   - name: Check out the repository to the runner
                     uses: actions/checkout@v4
@@ -117,5 +119,5 @@ jobs:
                   - uses: actions/upload-artifact@v4
                     with:
                           name: libwebview_mac_arm64
-                          path: ${ SCRIPT_DIR }/**/*.dylib
+                          path: ${{ env.SCRIPT_DIR }}/**/*.dylib
                           overwrite: true
