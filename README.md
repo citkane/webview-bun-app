@@ -1,15 +1,30 @@
 # webview-bun-app
 
-xxxxxxx **ALPHA SOFTWARE** xxxxxxxxx
 
-WBA (webview-bun-app) is a wrapper for [webview](https://github.com/webview/webview) that enables the building of [Bun](https://bun.sh/) based desktop applications which:
-- are cross-platform,
-- use HTML5 for their graphic user interface (GUI),
-- can leverage modern browser frontend technologies.
-- can leverage multi core processes
-- have a common service interface between processes
+WBA (webview-bun-app) is **ALPHA SOFTWARE**
+
+WBA is a lightweight framework for building cross-platform desktop applications that:
+- have a HTML5 graphic user interface (GUI),
+- may use modern browser frontend technologies,
+- may be multi-process / multi-threaded
+
+WBA runs on [Bun](https://bun.sh/) JS and wraps the binary [webview](https://github.com/webview/webview) browser library.<br>
+WBA is opinionated to a [service-oriented](https://en.wikipedia.org/wiki/Service-oriented_architecture) application architecture.<br>
+WBA provides an ubiquitous, easy to use [common service interface](#common-service-interface).<br>
+
+**Index:**<br>
+[Installation](#installation)<br>
+[Quick Start Example](#quick-start-example)<br>
+[Multi-Process](#multi-process)<br>
+[Common Service Interface](#common-service-interface)<br>
+[Topic Architecture](#topic-architecture)<br>
+[Service Template](#service-template)<br>
+[Why Bun?](#why-bun)<br>
+[Credits](#credits)
 
 ## Installation:
+First, [install Bun](https://bun.sh/docs/installation) for your OS.<br>
+Then:
 ```bash
 bun i https://github.com/citkane/webview-bun-app.git
 
@@ -19,14 +34,7 @@ bun run example
 This ALPHA software requires some OS dependencies for the webview binary to run. This will not always be so.<br>
 Please install the dependencies described in the installation instructions for [webview-bun](https://github.com/tr1ckydev/webview-bun/tree/1db3d04?tab=readme-ov-file#installation). 
 
-**Index:**<br>
-[Quick Start Example](#quick-start-example)<br>
-[Multi-Process](#multi-process)<br>
-[Common Service Interface](#common-service-interface)<br>
-[Topic Architecture](#topic-architecture)<br>
-[Service Template](#service-template)<br>
-[Why Bun?](#why-bun)<br>
-[Credits](#credits)
+
 
 ## Quick Start Example
 ```ts
@@ -87,30 +95,40 @@ When you create a service with the WBA [Service template](#service-template), yo
 ## Common Service Interface
 WBA has an ubiquitous common service interface, regardless of a service scope being in a browser window or the backend. All services can communicate between each other with a normalised interface.
 
+All interface calls are type safe.
+
 Shared process memory is not used, but this possibility is not excluded from future evolutions of WBA.
 
 ``` ts
 {
-    /** Request / Response pattern
+    /**
+     * Request / Response pattern
      */
-    request: (topic: string, parameters: [Parameters<topic>]) => Promise<ReturnType<topic>>,
+    request: (topic: string, parameters: [...Parameters]) => Promise<ReturnType>,
 
-    /** Publish / Subscribe pattern
+    /**
+     * Publish / Subscribe pattern
      */
     publish: (topic: string, value: any),
-    subscribe: (topic: string, callback: (value: ReturnType<topic>) => void),
+    subscribe: (topic: string, callback: (value: ReturnType) => void),
     unsubscribe: //the inverse of subscribe
 
-    /** Point to Point pattern
+    /**
+     * Point to Point pattern
      */
     once: //same as subscribe, but automatically unsubscribes after event consumption.
 
-    /** utilities
+    /**
+     * utilities
      */
     ping: () => Promise<pong>
-    ipc?: { // normalised abstraction of the native Bun `Worker | Spawn` ipc - useful for bootstrapping 
-        type ipcKey = "message" | "error" | "ready" |"ended" |"end",
-        listen: (key: ipcKey, callback: (value: any) => void) => void,
+    ipc?: { //This is a normalised abstraction of the native Bun `Worker | Spawn` ipc.
+            //It is useful for bootstrapping services.
+
+        /**
+         * type ipcKey = "message" | "error" | "ready" |"ended" |"end",
+         */
+        listen: (key: ipcKey, callbackFnc: callbackFnc) => void,
         send: (key: ipcKey, value: any)
     }
 }
