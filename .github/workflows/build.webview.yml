@@ -13,9 +13,8 @@ on:
                               - Windows_Amd64
                               - MacOS_Arm64
 env:
-      PACKAGE_DIR: packages/webview-bun-lib
-      SCRIPT_DIR: ${PWD}/$PACKAGE_DIR/scripts
-      BIN_DIR: ${PWD}/$PACKAGE_DIR/bin
+      SCRIPT_DIR: packages/webview-bun-lib/scripts
+      BIN_DIR: packages/webview-bun-lib/bin
 jobs:
       build_linux_x64:
             if: ${{ inputs.os == 'Linux_X64' }}
@@ -38,7 +37,7 @@ jobs:
                     uses: actions/upload-artifact@v4
                     with:
                           name: libwebview_linux_x64
-                          path: "${BIN_DIR}/**/*.so"
+                          path: ${{ env.BIN_DIR }}/**/*.so
                           overwrite: true
 
       build_linux_arm64:
@@ -58,7 +57,7 @@ jobs:
                                 mkdir -p ${{ env.BIN_DIR }}
 
                           dockerRunArgs: |
-                                --volume "${{ env.BIN_DIR }}:${{ env.BIN_DIR }}"
+                                --volume "${PWD}${{ env.BIN_DIR }}:${{ env.BIN_DIR }}"
                           shell: /bin/sh
                           install: |
                                 apt-get update -q -y
