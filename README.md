@@ -25,6 +25,7 @@ Please install the dependencies described in the installation instructions for [
 [Common Service Interface](#common-service-interface)<br>
 [Topic Architecture](#topic-architecture)<br>
 [Service Template](#service-template)<br>
+[Why Bun?](#why-bun)<br>
 [Credits](#credits)
 
 ## Quick Start Example
@@ -244,6 +245,18 @@ export class Main extends SocketInterface {
     }
 }
  ```
+## Why Bun?
+
+I want a simple experience to develop and consume this framework (and the applications I intend to build on top of it).<br>
+Thus I am holding the frontend / backend interface environment to a common language, ie. Typescript.
+
+[Bun](https://bun.sh/) provides the following:
+- natively run typescript with jit compilation
+- in-script Ts to ES6 compilation commands
+- a cross-platform bash interface
+- tools for cross platform binary compilation
+- built in HTML server and websockets
+- built in backend `Worker` threads and `Spawn` processes with native IPC.  
 
 ## Credits:
 [webview](https://github.com/webview/webview): Provides the C/C++ webview library<br>
