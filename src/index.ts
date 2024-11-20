@@ -4,9 +4,12 @@ declare global {
             "wba/server/beforeExit": void;
       }
 }
+
 export type { Topics } from "./types/types.api";
+
 export { SocketInterface } from "./constructors/SocketInterface";
 export { Service } from "./constructors/Service";
+
 import type { resolver } from "./types/types.api";
 
 import conf from "./conf";
@@ -23,8 +26,11 @@ export default class WebviewBunApp extends Webviews {
       private onReadyResolver?: resolver;
       private serverService?: InstanceType<typeof Service<"childWorker">>;
 
-      constructor(htmlRoot?: string | string[]) {
-            super(serverPort, rootTopic);
+      constructor(
+            htmlRoot?: string | string[],
+            private _port = serverPort,
+      ) {
+            super(_port, rootTopic);
             this.makeServer(serverServiceFile, htmlRoot)
                   .then(() => this.startApiSocket(socketApi, this))
                   .then(this.apiIsReady)
@@ -39,7 +45,7 @@ export default class WebviewBunApp extends Webviews {
 
       private get publicApi() {
             return {
-                  port: serverPort,
+                  port: this._port,
                   server: this.serverPublicApi,
                   webview: this.webviewPublicApi,
                   publish: this.publish,
