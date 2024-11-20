@@ -31,10 +31,6 @@ bun i https://github.com/citkane/webview-bun-app.git
 # Run the example application
 bun run example
 ```
-This ALPHA software requires some OS dependencies for the webview binary to run. This will not always be so.<br>
-Please install the dependencies described in the installation instructions for [webview-bun](https://github.com/tr1ckydev/webview-bun/tree/1db3d04?tab=readme-ov-file#installation). 
-
-
 
 ## Quick Start Example
 ```ts
@@ -44,7 +40,28 @@ const wba = await new WebviewBunApp().ready();
 const pong = await wba.server.ping();
 console.log(pong);
 
-/** Create a service for your backend business logic
+/**
+ *  Create webview instances each with an unique root topic.
+ *  Each will be running in it's own process
+ */
+const webview1 = await wba.webview.create("window/1");
+const webview2 = await wba.webview.create("window/2");
+
+/** 
+ * Set up your webviews
+ */
+webview1.navigate("your/html1/rootDirectory");
+webview2.navigate("your/html2/rootDirectory");
+webview1.title("webview 1");
+webview2.title("webview 2");
+
+/** 
+ * In this example, we want to shut down the whole application if webview1 is closed
+ */
+webview1.onclose(wba.server.close);
+
+/** 
+ * Create a service for your backend business logic
  */
 const filePath = "path/to/your/BackendService.ts";
 const backendService = new Service(filePath, "childProcess", [
@@ -52,50 +69,34 @@ const backendService = new Service(filePath, "childProcess", [
       ...yourServiceParameters,
 ]);
 
-/** Create webview instances each with an unique root topic.
- *  Each will be running in it's own process (not a worker thread)
- */
-const webview1 = await wba.webview.create("window/1");
-const webview2 = await wba.webview.create("window/2");
-
-/** In this example, we want to shut down the whole application if webview1 is closed
- */
-webview1.onclose(wba.server.close);
-
-/** Set up your webviews
- */
-webview1.navigate(/* your html root dir path*/);
-webview1.title("webview 1");
-webview2.navigate(/* your html root dir path*/);
-webview2.title("webview 2");
-
-/** Wait for the ready signal from your backend service before running the webviews
+/** 
+ * Wait for the ready signal from your backend service before running the webviews
  */
 backendService.ipc?.listen("ready", () => {
       webview1.run();
       webview2.run();
 });
 
-/** Perform custom logic before your application shuts down,
+/** 
+ * Perform custom logic before your application shuts down,
  *  ie. the common interface server is closing,
  */
 wba.subscribe("wba/server/beforeExit", () => {
       webview2.terminate();
-      backendService.terminate();
+      backendService.ipc?.send("end")
 });
 ```
 
 ## Multi-Process
-WBA implements a micro-service architecture on localhost. This inherently enables multiprocessing and multithreading.
 
-When you create a service with the WBA [Service template](#service-template), you can choose to create:
+When you create a service with the WBA [service template](#service-template), you can choose:
 - a "childWorker" (Bun `Worker` thread)
 - a "childProcess" (Bun `Spawn` process).  
 
 ## Common Service Interface
-WBA has an ubiquitous common service interface, regardless of a service scope being in a browser window or the backend. All services can communicate between each other with a normalised interface.
+WBA has an ubiquitous common service interface, regardless of the running scope being in a browser window or the backend. All services can communicate between each other with a normalised interface.
 
-All interface calls are type safe.
+Interface calls are type safe (except for IPC).
 
 Shared process memory is not used, but this possibility is not excluded from future evolutions of WBA.
 
@@ -136,21 +137,24 @@ Shared process memory is not used, but this possibility is not excluded from fut
 ## Topic Architecture
 
 WBA topics are:
-- type-safe, so your IDE will help you to sift through them, and provide the return type. 
-- based on the [MQTT](https://www.hivemq.com/blog/mqtt-essentials-part-5-mqtt-topics-best-practices/) topic architecture, so multi and single-level subscriptions are possible.
+- type-safe, so your IDE will help you to sift through them and provide you with the return type.
+- based on the [MQTT](https://www.hivemq.com/blog/mqtt-essentials-part-5-mqtt-topics-best-practices/) topic architecture.
 
-WBA does not impose a messaging schema, but it it is recommended that topics mirror your service domain schema. Each of your services must have a unique root topic.
+WBA does not impose a messaging schema, but it is recommended that your topics mirror your service domain schema. Each of your services must have a unique root topic.
 
 
-Subscribing to a topic may implement the MQTT [wildcard](https://www.hivemq.com/blog/mqtt-essentials-part-5-mqtt-topics-best-practices/#heading-what-are-mqtt-wildcards-and-how-to-use-them-with-topic-subscriptions) logic:
+Subscribing to a topic can implement the MQTT [wildcard](https://www.hivemq.com/blog/mqtt-essentials-part-5-mqtt-topics-best-practices/#heading-what-are-mqtt-wildcards-and-how-to-use-them-with-topic-subscriptions) logic.
 
 **Example:**
 
 ```ts
 /**
- * wba = your instance of a WBA Service, in a frontend window scope with a rootTopic of "window/1"
- * We are interacting with the `contacts` backend service
+ * wba = an instance of a WBA webview browser `window` scope with a rootTopic of "window/1"
+ * We are interacting with the WBA backend service `contacts`.
  */
+
+import type { SocketInterface } from "webview-bun-app";
+declare const wba: InstanceType<SocketInterface>
 
 declare global {
     interface eventTopics: {
@@ -163,12 +167,15 @@ const contacts = await wba.request("contacts/getContacts", ["all"]) // request a
 wba.subscribe("contacts/partners/changed/phoneNumber", (changed) => {
     //a changed partner phone number.
 })
+
 wba.subscribe("contacts/+/changed/email", (changed) => {
     //a changed partner, client, employee, etc email.
 })
+
 wba.subscribe("contacts/clients/changed/#", (changed) => {
     //a changed client contact detail of any type.
 })
+
 
 form.addEventListener("submit", (e: Event) => {
     e.preventDefault();
@@ -180,7 +187,7 @@ form.addEventListener("submit", (e: Event) => {
  A multi level wildcard `#` must be at the end, and it may not be combined with a single level wildcard.
 
  ## Service Template
- As a consumer of WBA, you will create a new service for your application like this:
+ As a consumer of WBA, you can create a new service for your application like this:
  ```ts
 import WebviewBunApp, { Service } from "webview-bun-app";
 
@@ -215,8 +222,8 @@ declare global {
 const rootTopic = "contacts"; //this must be a unique name in your application service stack
 
 /**
- * `socketApi` defines the `request` interface for this service in your application.
- * It must be declared in the exact type form as below, ie. (this: InstanceType<Constructor>) => Record<string, Function>
+ * `socketApi` defines the `request` interface of this service in your application.
+ * It must be declared in the exact type form as below.
  */
 function socketApi(this: InstanceType<typeof Main>) { 
       return {
@@ -227,18 +234,25 @@ function socketApi(this: InstanceType<typeof Main>) {
 }
 
 /** 
- * The class must be called `Main`, and exported exactly as below
+ * The class must be named `Main`, and exported exactly as below
  */
 export class Main extends SocketInterface {
     
-    constructor(port: number, ...params) {   //The `port` parameter is required
-        super(port, rootTopic, process)      //pass either `self` or `process` to `super` depending on 
-                                             //if the scope is a "childWorker" or "childProcess" respectively.
+    constructor(port: number, ...params) {     //The `port` parameter is required
+        super(port, rootTopic, process)        //pass either `self` or `process` to `super` depending on 
+                                               //if the scope is a "childWorker" or "childProcess" respectively.
         this.startApiSocket(socketApi, this)
             .then(() => {
-                this.ipc?.send("ready");     //signal back to the parent process that you are ready.
-                this.init();                 //Your service is now ready for business
+                this.ipc?.send("ready");       //signal back to the parent process that you are ready.
+                this.ipc?.listen("end", ()=>{
+                    ...                        //cleanly shut down your service when ended.
+                })
+                this.init();                   //Initiate your business logic.
             });
+    }
+
+    getContacts = (scope: "all" | "clients" | "employees") => {
+        return this.request("database/contacts", ["read", scope])
     }
 
     /**
@@ -248,9 +262,7 @@ export class Main extends SocketInterface {
         this.subscribe("database/contacts/updated/#", this.changedOnDB)
         this.subscribe("window/+/contacts/updated", this.changedOnFrontend)
     }
-    getContacts = (scope: "all" | "clients" | "employees") => {
-        return this.request("database/contacts", ["read", scope])
-    }
+
     private changedOnDB(detail: contactDetail) {
         this.publish(`contacts/${detail.category}/changed/${detail.type}`, detail);
     }
@@ -265,17 +277,17 @@ export class Main extends SocketInterface {
  ```
 ## Why Bun?
 
-I want a simple experience to develop and consume this framework (and the applications I intend to build on top of it).<br>
+I want a simple experience to develop and consume this framework.<br>
 Thus I am holding the frontend / backend interface environment to a common language, ie. Typescript.
 
 [Bun](https://bun.sh/) provides the following:
-- natively run typescript with jit compilation
-- in-script Ts to ES6 compilation commands
-- a cross-platform bash interface
-- tools for cross platform binary compilation
-- built in HTML server and websockets
-- built in backend `Worker` threads and `Spawn` processes with native IPC.  
+- natively run typescript with jit compilation,
+- in-script Ts to ES6 compilation functionality,
+- a cross-platform bash interface,
+- tools for cross platform binary compilation,
+- native HTML server with websocket and native client,
+- native backend `Worker` threads and `Spawn` processes with native IPC.  
 
 ## Credits:
 [webview](https://github.com/webview/webview): Provides the C/C++ webview library<br>
-[webview-bun](https://github.com/tr1ckydev/webview-bun): Provides the Bun JS API interface for webview
+[webview-bun](https://github.com/tr1ckydev/webview-bun): From which I took the Bun JS ffi interface for webview
