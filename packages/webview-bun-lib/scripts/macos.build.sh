@@ -9,7 +9,7 @@ else
     cd webview || exit
 fi
 
-TARGET_DIR=../../../bin/webview
+TARGET_DIR=../../bin
 TARGET_FILE="$TARGET_DIR/libwebview-macos-$(arch).dylib"
 
 
@@ -23,4 +23,3 @@ cmake --build build
 
 cp build/core/libwebview.dylib "$TARGET_FILE"
 rm -rf build
-cd ../../../../

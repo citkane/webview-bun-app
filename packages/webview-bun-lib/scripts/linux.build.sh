@@ -9,7 +9,7 @@ else
     cd webview || exit
 fi
 
-TARGET_DIR=../../../bin/webview
+TARGET_DIR=../../bin
 TARGET_FILE="$TARGET_DIR/libwebview-linux-$(arch).so"
 
 cmake -G Ninja -B build -S . -Wno-dev -D CMAKE_BUILD_TYPE=Release \
@@ -22,4 +22,3 @@ cmake --build build
 
 cp build/core/libwebview.so "$TARGET_FILE"
 rm -rf build
-cd ../../../../

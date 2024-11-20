@@ -23,7 +23,7 @@ jobs:
             runs-on: ubuntu-latest
             defaults:
                   run:
-                        working-directory: "${SCRIPT_DIR}"
+                        working-directory: ${{ env.SCRIPT_DIR }}
             steps:
                   - name: Check out the repository to the runner
                     uses: actions/checkout@v4
@@ -55,17 +55,17 @@ jobs:
                           distro: ubuntu22.04
                           githubToken: ${{ github.token }}
                           setup: |
-                                mkdir -p "${PWD}/${SCRIPT_DIR}/bin"
+                                mkdir -p ${{ env.BIN_DIR }}
 
                           dockerRunArgs: |
-                                --volume "${PWD}/packages/webview-bun-lib/bin:packages/webview-bun-lib/bin"
+                                --volume "${{ env.BIN_DIR }}:${{ env.BIN_DIR }}"
                           shell: /bin/sh
                           install: |
                                 apt-get update -q -y
                                 apt-get install -q -y git libgtk-3-0  libwebkit2gtk-4.1-0 libwebkit2gtk-4.1-dev cmake build-essential ninja-build python3
 
                           run: |
-                                cd ./packages/webview-bun-lib
+                                cd ${{ env.SCRIPT_DIR }}
                                 bash ./linux.build.sh
                                 ls
 
@@ -73,7 +73,7 @@ jobs:
                     uses: actions/upload-artifact@v4
                     with:
                           name: libwebview_linux_arm64
-                          path: ${{ env.SCRIPT_DIR }}/**/*.so
+                          path: ${{ env.BIN_DIR }}/**/*.so
                           overwrite: true
 
       build_windows_amd64:
@@ -96,7 +96,7 @@ jobs:
                   - uses: actions/upload-artifact@v4
                     with:
                           name: libwebview_windows_amd64
-                          path: ${{ env.SCRIPT_DIR }}/**/*.dll
+                          path: ${{ env.BIN_DIR }}/**/*.dll
                           overwrite: true
 
       build_mac_arm64:
@@ -119,5 +119,5 @@ jobs:
                   - uses: actions/upload-artifact@v4
                     with:
                           name: libwebview_mac_arm64
-                          path: ${{ env.SCRIPT_DIR }}/**/*.dylib
+                          path: ${{ env.BIN_DIR }}/**/*.dylib
                           overwrite: true
