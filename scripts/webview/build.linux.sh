@@ -22,4 +22,5 @@ cmake --build build
 
 cp build/core/libwebview.so "$TARGET_FILE"
 rm -rf build
-cd "$(dirname "$0")" || exit
+cd "$(dirname "$0")/../.." || exit
+ls
