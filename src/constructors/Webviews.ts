@@ -1,5 +1,3 @@
-type publish = InstanceType<typeof SocketInterface>["publish"];
-type once = InstanceType<typeof SocketInterface>["once"];
 import { SocketInterface } from "./SocketInterface";
 
 import { toError } from "../utils";
@@ -55,9 +53,9 @@ function publicApi(service: Service<"childProcess">, handle: number) {
                         parameters: url ? [url] : [],
                   });
             },
-            title: (title: string) => {
+            setTitle: (title: string) => {
                   ipc?.send("message", {
-                        topic: "title",
+                        topic: "setTitle",
                         parameters: [title],
                   });
             },

@@ -50,10 +50,8 @@ const webview2 = await wba.webview.create("window/2");
 /** 
  * Set up your webviews
  */
-webview1.navigate("your/html1/rootDirectory");
-webview2.navigate("your/html2/rootDirectory");
-webview1.title("webview 1");
-webview2.title("webview 2");
+webview1.setTitle("webview 1");
+webview2.setTitle("webview 2");
 
 /** 
  * In this example, we want to shut down the whole application if webview1 is closed

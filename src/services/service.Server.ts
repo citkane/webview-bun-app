@@ -68,7 +68,7 @@ export class Main extends SocketInterface {
                   data: { rootTopic },
             });
             // Does a Websocket upgrade if requested, else http respond with the requested resource
-            return upgraded
+            return !!upgraded
                   ? undefined
                   : await libServer
                           .getFileMeta(req, this.htmlRoots, this.headers)

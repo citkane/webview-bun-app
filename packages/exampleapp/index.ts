@@ -27,10 +27,8 @@ webview1.onclose(wba.server.close);
 
 /** Set up your webviews
  */
-webview1.navigate(/* your absolute html root dir path*/);
-webview1.title("webview 1");
-webview2.navigate(/* your absolute html root dir path*/);
-webview2.title("webview 2");
+webview1.setTitle("webview 1");
+webview2.setTitle("webview 2");
 
 /** Wait for the signal from your backend service before running the webviews
  */

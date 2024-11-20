@@ -11,13 +11,12 @@
   },
   "scripts": {
     "example": "bun run --cwd packages/exampleapp index.ts",
-    "build.webview.linux": "bash ./packages/webview-bun-lib/scripts/build.linux.sh"
+    "build.webview.linux": "bash ./packages/webview-bun-lib/scripts/linux.build.sh",
+    "build.webview.docs": "bash ./packages/webview-bun-lib/scripts/linux.build.docs.sh",
+    "docs.libwebview": "bun run ./packages/webview-docs/index.ts"
   },
   "type": "module",
   "workspaces": [
     "packages/*"
-  ],
-  "dependencies": {
-    "webview-bun": "https://github.com/tr1ckydev/webview-bun.git#1db3d04"
-  }
+  ]
 }

@@ -22,6 +22,7 @@ export function getFileMeta(
 }
 export function makeResponse(metaOrError: fileMeta, headers: Headers) {
       const { filePath, fileType } = metaOrError as fileMeta;
+      console.log({ filePath, fileType });
       const errorCode = setContentType(fileType, headers);
       return new Promise<Response>(async (resolve, reject) => {
             if (errorCode) return reject(serverError(errorCode, headers));
@@ -34,6 +35,7 @@ export function makeResponse(metaOrError: fileMeta, headers: Headers) {
 export function setContentType(fileType: string, headers: Headers) {
       const k = fileType as keyof typeof conf.contentTypes;
       const contentType = conf.contentTypes[k];
+      console.log({ fileType, contentType });
       return !!contentType
             ? headers.set("Content-Type", contentType)
             : statusCode.NotImplemented;
