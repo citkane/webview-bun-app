@@ -50,7 +50,7 @@ jobs:
                     name: Build artifact in QUEMU arm64 container
                     id: build
                     with:
-                          arch: armv7
+                          arch: aarch64
                           distro: ubuntu22.04
                           githubToken: ${{ github.token }}
                           setup: |
