@@ -54,17 +54,17 @@ jobs:
                           distro: ubuntu22.04
                           githubToken: ${{ github.token }}
                           setup: |
-                                mkdir -p ${{ env.BIN_DIR }}
+                                mkdir -p "${PWD}/$BIN_DIR"
 
                           dockerRunArgs: |
-                                --volume "${PWD}${{ env.BIN_DIR }}:${{ env.BIN_DIR }}"
+                                --volume "${PWD}/$BIN_DIR:${PWD}/$BIN_DIR"
                           shell: /bin/sh
                           install: |
                                 apt-get update -q -y
                                 apt-get install -q -y git libgtk-3-0  libwebkit2gtk-4.1-0 libwebkit2gtk-4.1-dev cmake build-essential ninja-build python3
 
                           run: |
-                                cd ${{ env.SCRIPT_DIR }}
+                                cd "$SCRIPT_DIR"
                                 bash ./linux.build.sh
                                 ls
 
