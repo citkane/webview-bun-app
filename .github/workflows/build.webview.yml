@@ -31,7 +31,7 @@ jobs:
                     run: ./linux.ubuntu.prepare.sh
 
                   - name: Build webview
-                    run: ./build.linux.sh
+                    run: ./linux.build.sh
 
                   - name: Upload artifacts
                     uses: actions/upload-artifact@v4
