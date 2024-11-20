@@ -49,10 +49,10 @@ jobs:
         arch: armv7
         distro: ubuntu22.04
         setup: |
-            mkdir -p "${PWD}/artifacts"
+            mkdir -p "${PWD}/xartifacts"
             
         dockerRunArgs: |
-          --volume "${PWD}/artifacts:/bin/webview"
+          --volume "${PWD}/bin/webview:/artifacts"
         shell: /bin/sh
         install: |
           apt-get update -q -y
