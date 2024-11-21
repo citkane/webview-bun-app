@@ -36,7 +36,7 @@ bun run example
 ```ts
 import WebviewBunApp, { Service } from "webview-bun-app";
 
-const wba = await new WebviewBunApp().ready();
+const wba = await new WebviewBunApp("absolute/path/to/htmlRootFolder").ready();
 const pong = await wba.server.ping();
 console.log(pong);
 
@@ -61,7 +61,7 @@ webview1.onclose(wba.server.close);
 /** 
  * Create a service for your backend business logic
  */
-const filePath = "path/to/your/BackendService.ts";
+const filePath = "absolute/path/to/your/BackendService.ts";
 const backendService = new Service(filePath, "childProcess", [
       wba.port,
       ...yourServiceParameters,
@@ -288,4 +288,3 @@ Thus I am holding the frontend / backend interface environment to a common langu
 
 ## Credits:
 [webview](https://github.com/webview/webview): Provides the C/C++ webview library<br>
-[webview-bun](https://github.com/tr1ckydev/webview-bun): From which I took the Bun JS ffi interface for webview
