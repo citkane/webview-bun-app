@@ -28,21 +28,3 @@ export const libFileName = join(currentDir, "../bin", _libFileName);
 export function toCstring(value: string) {
       return encoder.encode(`${value}\0`);
 }
-
-export async function getLibWebviewFilePath() {
-      const { platform, machine } = os;
-      let fileName: string;
-      switch (platform()) {
-            case "darwin":
-                  fileName = `libwebview-macos-${machine()}.dylib`;
-                  break;
-            case "linux":
-                  fileName = `libwebview-linux-${machine()}.so`;
-                  break;
-            case "win32":
-                  let _machine = machine();
-                  _machine = _machine === "x86_64" ? "AMD64" : _machine;
-                  fileName = `libwebview-windows-${_machine}.dll`;
-                  break;
-      }
-}

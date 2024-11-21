@@ -1,1 +1,1 @@
-console.log("Hello application");
+// console.log("Hello application");

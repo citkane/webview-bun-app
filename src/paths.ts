@@ -1,6 +1,6 @@
 import * as path from "node:path";
 
-const currentFilePath = import.meta.path;
+const currentFilePath = import.meta?.path;
 const currentFileDir = path.dirname(currentFilePath);
 
 /**
