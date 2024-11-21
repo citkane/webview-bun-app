@@ -1,0 +1,12 @@
+{
+  "name": "webview-bun-lib",
+  "module": "src/index.ts",
+  "type": "module",
+  "main": "src/index.ts",
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  }
+}

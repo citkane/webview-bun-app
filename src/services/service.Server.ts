@@ -4,13 +4,10 @@ declare global {
 }
 
 import type { Server, WebSocketHandler } from "bun";
-import type { pong, Topics } from "../types/types.api";
-import type { topic, Message, message, ws } from "../types/types.messaging";
+import type { pong, Topics, topic, Message, message, ws } from ".";
 
-import { logger } from "../utils";
-import { SocketInterface } from "../constructors/SocketInterface";
 import * as path from "node:path";
-import { libPublisher, libServer } from "../lib";
+import { libPublisher, libServer, logger, SocketInterface } from ".";
 
 const htmlExampleRoot = path.dirname(require.resolve("exampleapp"));
 
@@ -68,13 +65,11 @@ export class Main extends SocketInterface {
                   data: { rootTopic },
             });
             // Does a Websocket upgrade if requested, else http respond with the requested resource
-            return upgraded
+            return !!upgraded
                   ? undefined
                   : await libServer
                           .getFileMeta(req, this.htmlRoots, this.headers)
-                          .then((metaOrError) =>
-                                libServer.makeResponse(metaOrError, this.headers),
-                          )
+                          .then(libServer.makeResponse)
                           .catch((errResponse: Response) => errResponse);
       };
 

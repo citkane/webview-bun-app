@@ -1,41 +1,43 @@
 import type { Message } from "../types/types.messaging";
 import type { Pointer } from "bun:ffi";
 
-import { logger, makeHttpUrl } from "../utils";
-import conf from "../conf";
-import { LibIpc } from "../lib";
-import { Service } from "../constructors/Service";
-import paths from "../paths";
-import { Webview } from "webview-bun";
+import { conf, LibIpc, logger, makeHttpUrl, Service, paths } from ".";
+import { Webview } from "webview-bun-lib";
 
 const servicePath = paths.getAbsolutePath("src/services/service.Window.ts");
 
 export class Main {
       webview: Webview;
-      handle: Pointer;
+      id: Pointer;
       private ipc = new LibIpc(process);
       constructor(
             private port: number,
             rootTopic: string,
       ) {
             this.webview = new Webview(conf.webviewDebug);
-            this.handle = this.webview.unsafeWindowHandle!;
+            this.id = this.webview.id;
+            /**
+             * Use IPC as a hack.
+             * We do not want to open up a websocket in both the webview process and the webview window.
+             */
             this.ipc.listen("message", this.messageHandler);
             new Service<"window">(servicePath, "window", port, rootTopic).child.then(
                   (wbaString) => {
-                        this.ipc.send("ready", this.handle);
+                        this.ipc.send("ready", this.id);
                         this.webview.init(wbaString);
+                        this.navigate();
                   },
             );
       }
-      navigate = (url: URL = makeHttpUrl(this.port)) =>
+      navigate = (url: URL = makeHttpUrl(this.port)) => {
             this.webview.navigate(url.toString());
+      };
       run = () => {
             this.webview.run();
-            this.ipc.send("ended", this.handle);
+            this.ipc.send("ended", this.id);
       };
-      title = (title: string) => {
-            this.webview.title = title;
+      setTitle = (title: string) => {
+            this.webview.setTitle(title);
       };
 
       private messageHandler = (message: Message) => {
