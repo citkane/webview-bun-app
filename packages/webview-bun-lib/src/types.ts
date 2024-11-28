@@ -17,5 +17,4 @@ enum size_hint {
       WEBVIEW_HINT_FIXED,
 }
 
-export type callBackFn = (...args: any[]) => any;
 export { native_handle_kind, size_hint };

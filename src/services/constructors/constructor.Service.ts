@@ -1,6 +1,6 @@
-import type { child, Constructor, serviceTypes } from ".";
+import type { child, Constructor, Ports, serviceTypes } from "..";
 
-import { auditFilepath, buildJsFileString, logger, stringToTsBlob, LibIpc } from ".";
+import { auditFilepath, buildJsFileString, logger, stringToTsBlob, LibIpc } from "..";
 import { writeFileSync, mkdirSync } from "node:fs";
 import * as path from "node:path";
 import os from "os";
@@ -13,13 +13,14 @@ export class Service<T extends serviceTypes> {
       constructor(
             private filePath: string,
             type: serviceTypes,
+            ports: Ports,
             ...serviceArgs: ConstructorParameters<Constructor<any>>
       ) {
             auditFilepath(filePath);
-            this.serviceArgs = serviceArgs;
+            this.serviceArgs = [ports, ...serviceArgs];
             this.route(type);
       }
-      terminate = (exitCode?: number | NodeJS.Signals) => {
+      end = (exitCode?: number | NodeJS.Signals) => {
             if (typeof this.child === "string")
                   return logger.warning(Error(`Can't terminate a window process.`));
             switch (true) {
@@ -50,6 +51,7 @@ export class Service<T extends serviceTypes> {
             const tmpFile = path.join(dir, "Main.ts");
             mkdirSync(dir, { recursive: true });
             writeFileSync(tmpFile, this.mainRunString);
+
             this.child = Bun.spawn(["bun", tmpFile], {
                   ipc: (data: any) => {
                         const { topic, message } = LibIpc.parseSystemMessage(data);
@@ -58,6 +60,7 @@ export class Service<T extends serviceTypes> {
                   },
                   stdout: "inherit",
             }) as child<T>;
+
             this.ipc = new LibIpc(this.child as child<"childProcess">);
       };
       private makeChildWorker = () => {

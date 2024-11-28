@@ -1,8 +1,9 @@
-import { conf } from "../index.es";
+import conf from "../../conf";
+import logger from "./util.logger";
 
 let existsSync: any;
 
-export async function getOpenPort(serverPort?: number) {
+export async function getOpenPort(serverPort = 0) {
       const server = Bun.serve({
             port: serverPort,
             fetch() {
@@ -11,6 +12,7 @@ export async function getOpenPort(serverPort?: number) {
       });
       const port = server.port;
       await server.stop(true);
+
       return port;
 }
 
@@ -38,4 +40,10 @@ export function auditFilepath(filePath: string) {
 export function toError(error: any) {
       if (typeof error === "object" && !!error.name && !!error.message) return error;
       return Error(error);
+}
+export function errorRejection(err: Error) {
+      return new Promise<void>((resolve, reject) => {
+            logger.warning(err);
+            reject();
+      });
 }

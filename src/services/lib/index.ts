@@ -1,7 +1,6 @@
-export * from "../../types";
-export * from "../";
-export { LibIpc } from "./lib.Ipc";
+export * from "./lib.Ipc";
+export * from "./lib.sockets";
+export * from "./lib.debug";
+export * from "./lib.messageHandler";
 export * as libServer from "./lib.server";
-export * as libPublisher from "./lib.publisher";
-export * as libSocketClient from "./lib.socketClient";
-export * as libInterface from "./lib.interface";
+export * as libApi from "./lib.api";

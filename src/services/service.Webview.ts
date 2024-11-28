@@ -1,50 +1,62 @@
-import type { Message } from "../types/types.messaging";
-import type { Pointer } from "bun:ffi";
-
-import { conf, LibIpc, logger, makeHttpUrl, Service, paths } from ".";
 import { Webview } from "webview-bun-lib";
+import {
+      conf,
+      makeHttpUrl,
+      paths,
+      buildJsFileString,
+      libApi,
+      type Ports,
+      factoryDebug,
+      SocketServer,
+      logger,
+} from ".";
 
-const servicePath = paths.getAbsolutePath("src/services/service.Window.ts");
+const serviceFilePath = paths.getAbsolutePath("src/services/service.Window.ts");
+const windowJS = await buildJsFileString(serviceFilePath);
+const webview = new Webview(conf.webviewDebug);
+let debug: ReturnType<typeof factoryDebug>["webview"];
 
-export class Main {
-      webview: Webview;
-      id: Pointer;
-      private ipc = new LibIpc(process);
-      constructor(
-            private port: number,
-            rootTopic: string,
-      ) {
-            this.webview = new Webview(conf.webviewDebug);
-            this.id = this.webview.id;
-            /**
-             * Use IPC as a hack.
-             * We do not want to open up a websocket in both the webview process and the webview window.
-             */
-            this.ipc.listen("message", this.messageHandler);
-            new Service<"window">(servicePath, "window", port, rootTopic).child.then(
-                  (wbaString) => {
-                        this.ipc.send("ready", this.id);
-                        this.webview.init(wbaString);
-                        this.navigate();
-                  },
-            );
+export class Main extends SocketServer {
+      id = webview.id;
+
+      constructor(ports: Ports, rootTopic: string) {
+            super(ports, libApi.makeTopic(rootTopic), process);
+
+            debug = factoryDebug.bind(this)(__filename).webview;
+
+            this.apiInit(this, requestApi).then(() => {
+                  libApi.loggerKeys.forEach((key) => {
+                        const k = key as keyof typeof logger;
+                        webview.bind(`wba_logger_${k}`, logger[k]);
+                  });
+                  libApi.apiKeys.forEach((key) => {
+                        const k = key as keyof Partial<InstanceType<typeof Main>>;
+                        webview.bind(`wba_${k}`, (this as any)[k]);
+                  });
+                  webview.init(windowJS);
+                  this.apiInternal?.navigate();
+
+                  this.ipc?.send("ready", this.id);
+            });
       }
-      navigate = (url: URL = makeHttpUrl(this.port)) => {
-            this.webview.navigate(url.toString());
-      };
-      run = () => {
-            this.webview.run();
-            this.ipc.send("ended", this.id);
-      };
-      setTitle = (title: string) => {
-            this.webview.setTitle(title);
-      };
+}
 
-      private messageHandler = (message: Message) => {
-            const { topic, parameters } = message;
-            const key = topic as keyof this;
-            !!this[key] && typeof this[key] === "function"
-                  ? this[key](...(parameters || []))
-                  : logger.error(Error(`Did not find webview service command ${topic}`));
+function requestApi(this: InstanceType<typeof Main>) {
+      return {
+            navigate: (url: URL = makeHttpUrl(this.ports.serverHTTP)) => {
+                  return webview.navigate(url.toString());
+            },
+            run: () => {
+                  debug.run();
+                  webview.run();
+
+                  this.ipc?.send("ended", this.id);
+                  this.end();
+            },
+            setTitle: (title: string) => {
+                  return webview.setTitle(title);
+            },
+            bind: webview.bind,
+            unbind: webview.unbind,
       };
 }

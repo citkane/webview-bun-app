@@ -3,110 +3,72 @@ declare global {
       interface requestTopics extends Topics<typeof rootTopic, typeof socketApi> {}
 }
 
-import type { Server, WebSocketHandler } from "bun";
-import type { pong, Topics, topic, Message, message, ws } from ".";
+import type { pong, Ports, Topics } from ".";
 
 import * as path from "node:path";
-import { libPublisher, libServer, logger, SocketInterface } from ".";
+import { libApi, libServer, logger, SocketServer } from ".";
 
 const htmlExampleRoot = path.dirname(require.resolve("exampleapp"));
-
 const rootTopic = "wba/server";
+
 function socketApi(this: InstanceType<typeof Main>) {
       return {
             setHeader: (name: string, value: string) => {
-                  return !!this.server
+                  return !!this.serverHTTP
                         ? Error(`Cannot set headers of a server that is already running.`)
                         : this.headers.set(name, value);
             },
-            ping: (clientRoot: string) => {
-                  return {
+            ping: (clientRoot = "anonymous") => {
+                  const pong: pong = {
                         pong: `${clientRoot} to ${rootTopic} to ${clientRoot}`,
                         ms: Date.now(),
-                  } as pong;
+                  };
+                  return pong;
             },
       };
 }
 
-export class Main extends SocketInterface {
+export class Main extends SocketServer {
       protected headers = new Headers();
-      protected server: Server;
+      protected serverHTTP;
       private htmlRoots: string[];
-      constructor(port: number, htmlRoots: string | string[] = htmlExampleRoot) {
-            super(port, rootTopic, self, true);
-
+      constructor(ports: Ports, htmlRoots: string | string[] = htmlExampleRoot) {
+            super(ports, libApi.makeTopic(rootTopic), self);
             this.htmlRoots = Array.isArray(htmlRoots) ? htmlRoots : [htmlRoots];
-            this.server = Bun.serve({
-                  port,
-                  websocket: this.websocketHandler,
+            this.serverHTTP = Bun.serve({
+                  port: ports.serverHTTP,
+                  //websocket: this.websocketHandler,
                   fetch: this.fetchHandler,
             });
 
-            this.startApiSocket(socketApi, this).then(() => {
-                  logger.info(`The server is listening at ${this.server.url}`);
-                  this.ipc?.send("ready");
-            });
-            this.ipc?.listen("end", async (stage: number) => {
+            this.ipc?.listen("end", (stage: number) => {
                   switch (stage) {
                         case 0:
                               this.publish("wba/server/beforeExit");
                               break;
                         case 1:
-                              this.server.stop(true);
+                              this.serverHTTP.stop(true);
+                              this.serverHTTP.unref();
+                              this.serverTcp.stop(true);
+                              this.serverTcp.unref();
                               this.ipc?.send("ended");
+                              this.ipc?.send("end");
                               break;
                   }
+            });
+
+            this.apiInit(this, socketApi).then(() => {
+                  this.ipc?.send("ready");
+                  logger.info(`The http server is listening at ${this.serverHTTP.url}`);
+                  logger.info(
+                        `The tcp server is listening at port ${this.ports.serverTcp}`,
+                  );
             });
       }
-
-      private fetchHandler = async (req: Request, server: Server) => {
-            const rootTopic = new URL(req.url).searchParams.get("rootTopic");
-            const upgraded = server.upgrade(req, {
-                  data: { rootTopic },
-            });
-            // Does a Websocket upgrade if requested, else http respond with the requested resource
-            return !!upgraded
-                  ? undefined
-                  : await libServer
-                          .getFileMeta(req, this.htmlRoots, this.headers)
-                          .then(libServer.makeResponse)
-                          .catch((errResponse: Response) => errResponse);
-      };
-
-      private websocketHandler = {
-            message: (ws, message) => this.messageHandler(ws, message),
-            open: libPublisher.onOpenSocket,
-            error: (err: Error) => logger.error(err),
-            close: libPublisher.onCloseSocket,
-      } as WebSocketHandler<{ rootTopic: string }>;
-
-      private messageHandler = (socket: ws, messageString: message) => {
-            messageString = messageString.toString();
-            if (messageString.startsWith("$")) {
-                  const [instruction, id, topic] = messageString.split(".");
-                  switch (instruction) {
-                        case "$subscribe":
-                              libPublisher.onSubscribe(socket, topic as topic);
-                              logger.debug(`${id} subscribed to ${topic}`);
-                              break;
-                        case "$unsubscribe":
-                              libPublisher.onUnsubscribe(socket, topic as topic);
-                              logger.debug(`${id} unsubscribed from ${topic}`);
-                              break;
-                  }
-                  return;
-            }
-            const message = JSON.parse(messageString) as Message<topic>;
-            const wildMessageString = JSON.stringify({
-                  ...message,
-                  ...{ topic: libPublisher.wildcardPlaceholder },
-            });
-            const { topic } = message;
-            logger.debug({
-                  serverPublishes: topic,
-                  message,
-            });
-            this.server.publish(topic, messageString);
-            libPublisher.fanPublish(topic, wildMessageString);
+      private fetchHandler = async (req: Request) => {
+            return await libServer
+                  .getFileMeta(req, this.htmlRoots, this.headers)
+                  .then(libServer.makeResponse)
+                  .catch((errResponse: Response) => errResponse);
       };
 }

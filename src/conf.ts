@@ -1,14 +1,27 @@
-import mimeTypes from "./services/lib/lib.mimeTypes.json";
+type compileFileKey = keyof typeof compileFilePairs;
+type mimeKey = keyof typeof mimePairs;
 
-export default {
+import mimePairs from "./services/lib/lib.mimeTypes.json";
+import compileFilePairs from "./services/lib/lib.compileFileTypes.json";
+
+const config = {
       //responseTimeout: 500,
-      windowRootTopic: "wba/window",
+      //keepAliveTimeout: 1000,
       logLevel: 0,
       webviewDebug: true,
-      mimeTypes,
-      compileFileTypes: ["ts", "mts"],
-      serverPort: 0,
+      mimePairs,
+      compileFilePairs,
+      httpPort: 0,
+      tcpPort: 0,
       hostname: "localhost",
       socketProtocol: "ws",
       httpProtocol: "http",
 };
+
+Object.keys(config.compileFilePairs).forEach((key) => {
+      const mimeKey = config.compileFilePairs[key as compileFileKey];
+      const mimeValue = config.mimePairs[mimeKey as mimeKey];
+      config.mimePairs[key as mimeKey] = mimeValue;
+});
+
+export default config;

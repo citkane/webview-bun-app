@@ -10,7 +10,7 @@
     "typescript": "^5.0.0"
   },
   "scripts": {
-    "example": "bun run --cwd packages/exampleapp index.ts",
+    "example": "bun run --cwd packages/exampleapp run",
     "build.webview.linux": "bash ./packages/webview-bun-lib/scripts/linux.build.sh",
     "build.webview.docs": "bash ./packages/webview-bun-lib/scripts/linux.build.docs.sh",
     "docs.libwebview": "bun run ./packages/webview-docs/index.ts"

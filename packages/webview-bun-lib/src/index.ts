@@ -1,8 +1,7 @@
-import { type callBackFn, native_handle_kind, size_hint } from "./types";
-
 import { CString, JSCallback, type Pointer } from "bun:ffi";
 import { getLibWebviewSymbols as libWebviewSymbols } from "./ffi";
 import { libFileName, toCstring } from "./utils";
+import { native_handle_kind, size_hint } from "./types";
 
 const bindCallbacks = new Map<string, JSCallback>();
 
@@ -123,42 +122,43 @@ export class Webview {
        * The callback function is passed a request identifier, a request string and a user-provided argument.
        * The request string is a JSON array of the arguments passed to the JS function.
        *
-       * @param name
-       * @param callBack
-       * @param arg
+       * @param name The unique name of the function as it will be named in the browser `window` context
+       * @param callBack The function that will be called on the service side.
+       * @param userArg An optional C/C++ user argument
        */
-      bind = (name: string, callBack: callBackFn, arg?: string) => {
-            if (bindCallbacks.has(name))
-                  return this.logger.error(
-                        Error(`"${name}" is already a registered bind callback`),
-                  );
-            const _callBack = (
-                  id: string,
-                  argString: string,
-                  arg: Pointer | null,
-            ): any => {
-                  const args: Parameters<typeof callBack> = JSON.parse(argString);
-                  let result: any;
-                  let success = true;
+      bind = (name: string, callBack: (...args: any) => any, userArg?: string) => {
+            if (bindCallbacks.has(name)) {
+                  const errMessage = `"${name}" is already a registered bind callback`;
+                  return this.logger.error(Error(errMessage));
+            }
+
+            const _callBack = async (
+                  id: Pointer,
+                  argValuesString: string,
+            ): Promise<any> => {
+                  const argValues: Parameters<typeof callBack> =
+                        JSON.parse(argValuesString);
                   try {
-                        result = callBack(...args);
+                        const result = callBack(...argValues);
+                        if (result instanceof Promise) {
+                              result.then((result) =>
+                                    this.return(id, 0, JSON.stringify(result)),
+                              );
+                        } else {
+                              this.return(id, 0, JSON.stringify(result));
+                        }
                   } catch (err) {
-                        success = false;
-                        result = err;
+                        const result =
+                              err instanceof Error ? err : Error(err?.toString());
+                        return this.return(id, 1, JSON.stringify(result));
                   }
-                  result instanceof Promise
-                        ? result.then((result) =>
-                                this.return(id, success ? 0 : 1, JSON.stringify(result)),
-                          )
-                        : this.return(id, success ? 0 : 1, JSON.stringify(result));
             };
             const bindCallback = new JSCallback(
-                  (_id: Pointer, _argsString: Pointer, arg: Pointer | null) => {
-                        const id = _id ? (new CString(_id) as unknown as string) : "";
-                        const argsString = _argsString
-                              ? (new CString(_argsString) as unknown as string)
+                  (_id: Pointer, _argsString: Pointer) => {
+                        const argValuesString = _argsString
+                              ? new CString(_argsString)
                               : "";
-                        _callBack(id, argsString, arg);
+                        _callBack(_id, argValuesString.toString());
                   },
                   {
                         args: ["pointer", "pointer", "pointer"],
@@ -166,10 +166,12 @@ export class Webview {
                   },
             );
             bindCallbacks.set(name, bindCallback);
+
             this.lib.webview_bind(
                   this.handle,
                   toCstring(name),
-                  arg ? toCstring(arg) : null,
+                  bindCallback,
+                  userArg ? toCstring(userArg) : null,
             );
       };
       /**
@@ -190,12 +192,12 @@ export class Webview {
       private create = (debug: boolean = false, window?: number) => {
             return this.lib.webview_create(debug ? 1 : 0, window || null);
       };
-      private return = (id: string, status: number, result: string) => {
+      private return = (id: Pointer, status: number, result?: string) => {
             this.lib.webview_return(
                   this.handle,
-                  toCstring(id),
+                  id,
                   status,
-                  toCstring(result),
+                  result ? toCstring(result) : null,
             );
       };
 }

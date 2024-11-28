@@ -4,9 +4,12 @@ type fileMetaHeaders = {
       headers: Headers;
 };
 
-import { buildJsFileString, statusCode, stringToJsBytes, conf } from ".";
+import { buildJsFileString, statusCode, stringToJsBytes, conf } from "..";
 import * as path from "node:path";
 import { existsSync } from "node:fs";
+
+const { compileFilePairs: compileFileTypes } = conf;
+const compileFileExts: string[] = Object.keys(compileFileTypes);
 
 export function getFileMeta(req: Request, htmlRoots: string[], headers: Headers) {
       const fileMeta = makeFileMeta(new URL(req.url).pathname);
@@ -37,8 +40,8 @@ export function makeResponse({ fileMeta, headers }: fileMetaHeaders) {
 }
 
 function setMimeType(fileType: string, headers: Headers) {
-      const k = `.${fileType}` as keyof typeof conf.mimeTypes;
-      const contentType = conf.mimeTypes[k];
+      const k = fileType as keyof typeof conf.mimePairs;
+      const contentType = conf.mimePairs[k];
       if (!contentType)
             return { typeHeaders: headers, errorCode: statusCode.NotImplemented };
 
@@ -56,8 +59,8 @@ function makeErrorResponse(code: statusCode, headers: Headers) {
 }
 
 function fetchFile(filePath: string, fileType: string) {
-      const compileTheFile = conf.compileFileTypes.includes(fileType);
-      return compileTheFile
+      const compileTheFile = compileFileExts.includes(fileType);
+      return !!compileTheFile
             ? buildJsFileString(filePath).then(stringToJsBytes)
             : Bun.file(filePath).bytes();
 }
@@ -69,5 +72,6 @@ function makeFileMeta(filePath: string): fileMeta {
             pathArray.push("html");
       }
       const fileType = pathArray[pathArray.length - 1];
+
       return { filePath, fileType };
 }

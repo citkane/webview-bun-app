@@ -1,7 +1,10 @@
 {
   "name": "exampleapp",
-  "main": "index.ts",
-  "module": "index.ts",
+  "main": "src/index.ts",
+  "module": "src/index.ts",
+  "scripts": {
+    "run": "bun run src/index.ts"
+  },
   "devDependencies": {
     "@types/bun": "latest"
   },
