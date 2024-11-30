@@ -1,6 +1,6 @@
 import { CString, JSCallback, type Pointer } from "bun:ffi";
 import { getLibWebviewSymbols as libWebviewSymbols } from "./ffi";
-import { libFileName, toCstring } from "./utils";
+import { libFileName, toCstring, toTypedArray } from "./utils";
 import { native_handle_kind, size_hint } from "./types";
 
 const bindCallbacks = new Map<string, JSCallback>();
@@ -116,6 +116,43 @@ export class Webview {
             this.lib.webview_init(this.handle, toCstring(js));
       };
       /**
+       * Schedules a function to be invoked on the thread with the run/event loop. Use this function e.g. to interact with the library or native handles.
+       * @param fnc
+       * @param userArg
+       */
+      dispatch(
+            fnc: (...args: any[]) => any,
+            userArg?: object | number | bigint | string,
+      ) {
+            const dispatchFnc = new JSCallback(
+                  (_id, cArgsString) => {
+                        const args = !!cArgsString
+                              ? new CString(cArgsString).split(",")
+                              : [];
+                        fnc(...args);
+                        dispatchFnc.close();
+                  },
+                  { args: ["pointer", "cstring"], returns: "pointer" },
+            );
+            this.lib.webview_dispatch(
+                  this.handle,
+                  dispatchFnc,
+                  this.parseUserArg(userArg),
+            );
+      }
+      private parseUserArg(arg?: any) {
+            if (!arg) return null;
+            if (typeof arg === "string") return toCstring(arg);
+            if (typeof arg === "object") return toTypedArray(arg);
+            if (typeof arg === "number" || typeof arg === "bigint")
+                  return toCstring(arg.toString());
+
+            const errorString = `user arg must be an 'object', 'number', 'bigint' or 'string'. Got '${typeof arg}'`;
+            this.logger.warn(errorString);
+            console.trace();
+            return null;
+      }
+      /**
        * Binds a function pointer to a new global JavaScript function.
        *
        * Internally, JS glue code is injected to create the JS function by the given name.
@@ -126,7 +163,7 @@ export class Webview {
        * @param callBack The function that will be called on the service side.
        * @param userArg An optional C/C++ user argument
        */
-      bind = (name: string, callBack: (...args: any) => any, userArg?: string) => {
+      bind = (name: string, callBack: (...args: any[]) => any, userArg?: string) => {
             if (bindCallbacks.has(name)) {
                   const errMessage = `"${name}" is already a registered bind callback`;
                   return this.logger.error(Error(errMessage));
